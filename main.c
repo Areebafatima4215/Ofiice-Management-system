@@ -141,6 +141,72 @@ switch (main_choice) {
 
                         } while (role_choice != 4);
                     }
+                     // -------------------- STORE ROLE MENU --------------------
+                    else if (strcmp(user_info.role, "STORE") == 0) {
+                        do {
+                            printf("\n--- STORE MENU ---\n");
+                            printf("1. Move QC Passed to Store\n");
+                            printf("2. View Store\n");
+                            printf("3. View Production Issue\n");
+                            printf("4. View QC passed\n");
+                            printf("5. View QC passed approved/added by store\n");
+                            printf("6. Logout\n");
+                            printf("Enter your choice: ");
+                            scanf("%d", &role_choice);
+                            getchar();
+
+                            switch (role_choice) {
+                                case 1: QCpend_to_STORE(); break;
+                                case 2: file_viewer("store.txt"); break;
+                                case 3: file_viewer("production_issue.txt"); break;
+                                case 4: file_viewer("QC_passed.txt"); break;
+                                case 5: file_viewer("QC_passed_approved.txt"); break;
+                                 case 6: printf("Logging out...\n"); break;
+                                default: printf("Invalid choice.\n");
+                            }
+                            if (role_choice != 6) printf("\nPress Enter to continue...");
+                            getchar();
+
+                        } while (role_choice != 6);
+                    }
+
+                    else {
+                        printf("Role not recognized. Contact admin.\n");
+                        printf("\nPress Enter to continue...");
+                        getchar();
+                    }
+                } else {
+                     printf("Login failed. Try again.\n");
+                    printf("\nPress Enter to continue...");
+                    getchar();
+                }
+                break;
+
+            case 2: // Create Account
+                create_acc(&user_info);
+                printf("\nPress Enter to continue...");
+                getchar();
+                break;
+                
+            case 3: // Admin controls
+                admin_controls(&user_info);
+                printf("\nPress Enter to continue...");
+                getchar();
+                break;
+
+            case 4: // Exit
+                printf("Exiting...\n");
+                return 0;
+
+            default:
+             printf("Invalid choice.\n");
+                printf("\nPress Enter to continue...");
+                getchar();
+        }
+    }
+
+    return 0;
+}
 
 
 int start_menu(){
