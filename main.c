@@ -209,6 +209,7 @@ switch (main_choice) {
 }
 
 
+
 int start_menu(){
   int choice;
   printf("\n=======================================================\n");
@@ -224,29 +225,154 @@ int start_menu(){
   return choice;
 }
 
-//===================LOGIN FUNCTION============
-int login_user(login_info *info)
-{
-    printf("\n============ LOGIN================\n");
-    printf("Enter usenmae:");
-    scanf("%19s", info->username);
-    printf("Enter password:");
-    scanf("%49s",info->password);
-    printf("\nLogin information received .\n");
-    return 1;
+int login_user(login_info *info){
+
+  char username[20];
+  char password[50];
+  info->success=0;
+  int count=0;
+  int found=0;
+  getchar();
+  
+  while(count<3 && info->success==0){
+
+    printf("%s","Enter your username: \n");
+    fgets(username,sizeof(username),stdin);
+    username[strcspn(username, "\n")] = '\0';
+  
+    printf("%s","Enter your password: \n");
+    fgets(password,sizeof(password),stdin);
+    password[strcspn(password, "\n")] = '\0';
+     FILE *fptr;
+    FILE *tempo;
+    
+
+    fptr=fopen("users.txt","r");
+    tempo=fopen("temporary.txt","w");
+    if (!fptr || !tempo) {
+      printf("File error!\n");
+      return 0;
+    }
+    
+    char user[250];
+    char file_user[20];
+    char file_pass[50];
+    char file_role[10];
+    int file_attempts=0; found=0;
+    
+    
+    
+    
+    while (fgets(user,sizeof(user),fptr) ){
+      sscanf(user,"%[^,],%[^,],%[^,],%d\n",file_user,file_pass,file_role,&file_attempts);
+
+      
+
+      if(strcmp(file_user,username)==0 ){
+          found=1;
+
+        if(file_attempts<3){ 
+
+          if(strcmp(file_pass,password)==0){
+            info->success=1;
+            strcpy(info->role,file_role);
+            strcpy(info->username,username);
+            strcpy(info->password,password);
+            printf("%s","login successful\n");
+            fprintf(tempo,"%s,%s,%s,%d\n",file_user,file_pass,file_role,file_attempts);
+else{
+
+            file_attempts++;
+            fprintf(tempo,"%s,%s,%s,%d\n",file_user,file_pass,file_role,file_attempts);
+            printf("Wrong password. Attempts left: %d\n", 3 - file_attempts);
+          }
+        }else{
+          printf("%s","Account Locked\n");
+          fprintf(tempo,"%s,%s,%s,%d\n",file_user,file_pass,file_role,file_attempts);
+        }
+
+      }else{
+        fprintf(tempo,"%s,%s,%s,%d\n",file_user,file_pass,file_role,file_attempts);
+      }
+    }
+  
+    fclose(fptr);
+    fclose(tempo);
+    remove("users.txt");
+    rename("temporary.txt","users.txt");
+    count++;
+    
+    if(info->success==1){
+      return 1;
+    printf("%s","Login failed. Account may now be locked.\n");
+    return 0;
 }
 
-//========================== CREATE ACCOUNT =============
-int create_acc(login_info *info)
-{
- printf("\n============ CREATE ACCOUNT ================\n");
-    printf("Enter usenmae:");
-    scanf("%19s", info->username);
-    printf("Enter password:");
-    scanf("%49s",info->password);
-    printf("Enter role(Admin/USER):");
-    scanf("%9s", info->role);
-    printf("\nAccount information received.\n");
-    return 1;
+
+int create_acc(login_info *info){
+
+  char new_username[20];
+  char new_password[50];
+  char confirm_password[50];
+  getchar();
+
+  printf("%s","Enter the username you want: \n");
+  fgets(new_username,sizeof(new_username),stdin);
+  new_username[strcspn(new_username, "\n")] = '\0';
+  
+
+  printf("%s","Enter your password: ");
+  fgets(new_password,sizeof(new_password),stdin);
+   new_password[strcspn(new_password, "\n")] = '\0';
+  
+
+  do{
+
+      printf("%s","Please correctly confirm your password: \n");
+      fgets(confirm_password,sizeof(confirm_password),stdin);
+      confirm_password[strcspn(confirm_password, "\n")] = '\0';
+      
+
+  }while(strcmp(new_password,confirm_password)!=0);
+
+  FILE *fptr;
+   char user[250];
+  int found=1;
+  fptr=fopen("users.txt","r");
+  char *column;
+  
+  
+  while(found){
+    found=0;
+    rewind(fptr);
+    while (fgets(user,sizeof(user),fptr)){
+      column=strtok(user,",");
+
+      if(strcmp(column,new_username)==0){
+        printf("%s","Username already in use!\n");
+        found=1;
+        break;
+      }
+    }if(found==1){ printf("%s","Enter the username you want again: \n");
+    fgets(new_username,sizeof(new_username),stdin);
+    new_username[strcspn(new_username, "\n")] = '\0';
+    getchar();
+    }
+    
+
+  }
+  fclose(fptr);
+  fptr=fopen("users.txt","a");
+ fprintf(fptr,"%s,%s,%s,%d\n",new_username,confirm_password,"pending",0);
+  fclose(fptr);
+  info->success=1;
+  info->attempts=0;
+  strcpy(info->role,"pending");
+  strcpy(info->username,new_username);
+  strcpy(info->password,confirm_password);
+
+  printf("%s","Account created successfully\n");
+  return 1;
 }
 
+          }
