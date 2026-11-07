@@ -374,5 +374,189 @@ int create_acc(login_info *info){
   printf("%s","Account created successfully\n");
   return 1;
 }
+int admin_controls(login_info *info){
+
+    if(login_user(info)==0){
+      printf("Login Failed.\n");
+        return 0; 
+    
+    }
+    if(strcmp(info->role,"ADMIN")!=0){
+      printf("%s","Access denied, Only Admins allowed\n");
+
+    }
+
+
+
+
+    int admin_choice=0;
+    
+      printf("%s","1.Approve pending accounts by specifying their roles\n");
+      printf("%s","2.View Pending Accounts\n");
+      printf("%s","3.Unlock Users with 3 attempts\n");
+      printf("%s","Enter your menu choice\n");
+      scanf("%d",&admin_choice);
+      getchar();
+
+    return admin_choice; // admin_choice==0 means a failed login attempt
+}
+
+int show_pending(){
+  
+  FILE *fptr;
+  fptr=fopen("users.txt","r");
+  char user[250];
+  char file_user[20];
+  char file_pass[50];
+  char file_role[10];
+  int file_attempts=0;
+
+    
+    while (fgets(user,sizeof(user),fptr) ){
+      sscanf(user,"%[^,],%[^,],%[^,],%d\n",file_user,file_pass,file_role,&file_attempts);
+      if (strcmp(file_role,"pending")==0){
+        printf("%s,%s,%s,%d\n",file_user,file_pass,file_role,file_attempts);
+      }
+    
+    }
+    fclose(fptr);
+    return 0;
+}
+
+int admin_approval(){
+  char approve_user[20];
+  int role_no;
+  char user_role[10];
+  char role[15];
+  FILE *fptr;
+  fptr=fopen("emp_roles.txt","r");
+
+  printf("%s","Enter the username you want to approve: \n");
+  fgets(approve_user,sizeof(approve_user),stdin);
+  approve_user[strcspn(approve_user, "\n")] = '\0';  
+  getchar();
+
+  while(fgets(role,sizeof(role),fptr)){
+    sscanf(role,"%d.%[^\n]",&role_no,user_role);
+    printf("%d.%s\n",role_no,user_role);
+
+  }
+  fclose(fptr);
+  printf("%s","Enter the number of the role (displayed above) you want to approve for the user: ");
+  scanf("%d",&role_no);
+  getchar();
+
+  FILE * fptr1;
+  FILE *temp;
+  temp=fopen("temporary.txt","w");
+  fptr1=fopen("users.txt","r");
+  char user[250];
+  char file_user[20];
+  char file_pass[50];
+  char file_role[20];
+  int file_attempts=0;
+  int success=0;
+    
+  while (fgets(user,sizeof(user),fptr1) ){
+    sscanf(user,"%[^,],%[^,],%[^,],%d\n",file_user,file_pass,file_role,&file_attempts);
+    if(strcmp(file_user,approve_user)==0){
+      switch(role_no){
+        case 1:
+          strcpy(file_role,"QC");
+          fprintf(temp,"%s,%s,%s,%d\n",file_user,file_pass,file_role,file_attempts);
+          success=1;
+          break;
+        case 2:
+          strcpy(file_role,"ADMIN");
+          fprintf(temp,"%s,%s,%s,%d\n",file_user,file_pass,file_role,file_attempts);
+          success=1;
+          break;
+        case 3:
+          strcpy(file_role,"PRODUCTION");
+          fprintf(temp,"%s,%s,%s,%d\n",file_user,file_pass,file_role,file_attempts);
+          success=1;
+          break;
+        case 4:
+          strcpy(file_role,"GRN");
+          fprintf(temp,"%s,%s,%s,%d\n",file_user,file_pass,file_role,file_attempts);
+          success=1;
+          break;
+        case 5:
+          strcpy(file_role,"STORE"); fprintf(temp,"%s,%s,%s,%d\n",file_user,file_pass,file_role,file_attempts);
+          success=1;
+          break;
+      }
+    }else{
+      fprintf(temp,"%s,%s,%s,%d\n",file_user,file_pass,file_role,file_attempts);
+
+    }
+  }
+  fclose(fptr1);
+  fclose(temp);
+  remove("users.txt");
+  rename("temporary.txt","users.txt");
+
+  if(success){
+    printf("%s","Role Approved!\n");
+  }else{
+    printf("%s","Approval Failed\n");
+  }
+
+  return success;
+}
+
+int admin_unlock_user(){
+
+  char unlock_user[20];
+
+
+
+  printf("%s","Enter the username you want to unlock: \n");
+  fgets(unlock_user,sizeof(unlock_user),stdin);
+  unlock_user[strcspn(unlock_user, "\n")] = '\0';  
+  getchar();
+
+  FILE *fptr1;
+  FILE *temp;
+  temp=fopen("temporary.txt","w");
+  fptr1=fopen("users.txt","r");
+  char user[250];
+  char file_user[20];
+  char file_pass[50];
+  char file_role[10];
+  int file_attempts=0;
+  int success=0;
+  int found=0;
+    
+  while (fgets(user,sizeof(user),fptr1) ){
+    sscanf(user,"%[^,],%[^,],%[^,],%d\n",file_user,file_pass,file_role,&file_attempts);
+    if(strcmp(file_user,unlock_user)==0){
+      if(file_attempts==3){
+        file_attempts=0;
+        fprintf(temp,"%s,%s,%s,%d\n",file_user,file_pass,file_role,file_attempts); success=1;
+        found=1;
+      }else{
+        fprintf(temp,"%s,%s,%s,%d\n",file_user,file_pass,file_role,file_attempts);
+        
+      }
+    }else{
+      fprintf(temp,"%s,%s,%s,%d\n",file_user,file_pass,file_role,file_attempts);
+    }fclose(fptr1);
+  fclose(temp);
+  remove("users.txt");
+  rename("temporary.txt","users.txt");
+
+  if(success){
+    printf("%s","User Unlocked\n");
+  }else{
+    if(found){
+    printf("%s","User already unlocked\n");
+    }else{
+      printf("%s","User not found\n");
+    }
+  }
+
+  return success;
+}
 
           }
