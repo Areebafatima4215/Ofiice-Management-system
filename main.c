@@ -558,5 +558,81 @@ int admin_unlock_user(){
 
   return success;
 }
+int last_number(const char *prefix,const char *file_name ){
+  FILE *f=fopen(file_name,"r");
+  char line[256];char code[50];
+
+  int number=0;
+  if (f==NULL){
+    return 0;
+  }
+
+  while(fgets(line, sizeof(line),f)){
+    sscanf(line,"%[^,]",code);
+    if (strncmp(code,prefix,strlen(prefix))==0){
+
+      sscanf(code+strlen(prefix),"%d",&number);
+      
+    }
+
+  }
+  fclose(f);
+  return number;
+}
+void generate_code(const char *prefix,char *code,const char *file_name){
+int number=last_number(prefix,file_name);
+  number++;
+  
+  sprintf(code, "%s%03d", prefix, number);
+
+}
+
+
+int GRN(){
+  FILE *f=fopen("store.txt","r");
+  if(f == NULL){
+    printf("store.txt not found\n");
+    return 0;
+  }
+  int sno;
+  char part_no[10];
+  char part_name[50];
+  char supplier_name[20];
+  int price_per_unit;
+  int quantity;
+  char product[250];
+  int sno1;
+  char code[20];
+  int quantity1;
+  int found=0;
+
+  while (fgets(product,sizeof(product),f)){
+    sscanf(product,"%d,%[^,],%[^,],%[^,],%d,%d",&sno,part_no,part_name,supplier_name,&price_per_unit,&quantity);
+
+    printf("%d.%s\n",sno,part_name);
+
+  }
+  fclose(f);
+  printf("%s","Enter the part number you want to enter in the GRN approved: \n");
+  scanf("%d",&sno1);
+  getchar();
+
+  printf("%s","Enter the quantity: \n");scanf("%d",&quantity1);
+  getchar();
+
+  generate_code("GRN",code,"GRN_approved.txt");
+  FILE *f1=fopen("GRN_approved.txt","a");
+  if(f1 == NULL){
+    printf("Cannot open GRN_approved.txt\n");
+    
+    return 0;
+  }
+  f=fopen("store.txt","r");
+  if(f == NULL){
+    printf("store.txt not found\n");
+    fclose(f);
+    return 0;
+  }
+
 
           }
