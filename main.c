@@ -633,6 +633,383 @@ int GRN(){
     fclose(f);
     return 0;
   }
+   while (fgets(product,sizeof(product),f)){
+    sscanf(product,"%d,%[^,],%[^,],%[^,],%d,%d",&sno,part_no,part_name,supplier_name,&price_per_unit,&quantity);
+
+    if(sno==sno1){
+      fprintf(f1,"%s,%s,%s,%s,%d,%d\n",code,part_no,part_name,supplier_name,price_per_unit,quantity1);
+      found=1;
+      break;
+
+    }
+
+  }
+  fclose(f);
+  fclose(f1);
+  if(!found){
+      printf("%s","Invalid Choice.\n");
+    }
+    return found;
+}
+
+int GRN_to_QCP(){
+
+  char GRN_num[10];
+  char QC_code[10];
+
+  printf("%s","Enter the GRN number for the received good to be moved to QC pending:\n");
+  scanf("%s",GRN_num);
+  getchar();
+
+  FILE *f=fopen("QC_pending.txt","a");
+  if(f == NULL){
+    printf("Cannot open QC_pending.txt\n");
+    return 0;
+  }
+
+  FILE *f1=fopen("GRN_approved.txt","r");
+  if(f1 == NULL){
+    printf("GRN_approved.txt not found\n");
+    fclose(f);
+    return 0;
+    }
+
+  char line[250];
+  char GRN[10];
+  char part_no[10];
+  char part_name[50];
+  char supplier_name[20];
+  int price_per_unit;
+  int quantity;
+  
+
+
+
+  int found=0;
+
+  
+
+  while (fgets(line,sizeof(line),f1)){
+    sscanf(line,"%[^,],%[^,],%[^,],%[^,],%d,%d",GRN,part_no,part_name,supplier_name,&price_per_unit,&quantity);
+
+    if(strcmp(GRN,GRN_num)==0){
+      generate_code("QCPend",QC_code,"QC_pending.txt");
+      fprintf(f,"%s,%s,%s,%s,%s,%d,%d\n",QC_code,GRN,part_no,part_name,supplier_name,price_per_unit,quantity);
+      
+      found=1;
+      break;
+    }
+    
+  }
+  fclose(f);
+  fclose(f1);
+  if(!found){
+    printf("%s","Invalid Choice.\n");
+  }
+  return found;
+
+}
+
+void file_viewer(const char *file_name){
+
+  FILE *f=fopen(file_name,"r");
+  if(f==NULL){
+    printf("%s","Cant open file\n");
+    return;
+  }
+  char line[500];
+  printf("-------------------------------------\n");
+  while(fgets(line,sizeof(line),f)){
+    printf("%s\n",line);
+
+  }
+  printf("-------------------------------------\n");
+  fclose(f);
+
+}
+
+int QC_passed(){
+  char QC_pend_code[10];
+  char line[300];
+  printf("Enter the QC pending code of the good that you need to move to QC passed: \n");
+  scanf("%s",QC_pend_code);
+  getchar();
+
+  FILE *QC_pend=fopen("QC_pending.txt","r");
+  FILE *temp=fopen("temp.txt","w");
+  FILE *QC_pass=fopen("QC_passed.txt","a");
+
+  if(QC_pend == NULL || temp == NULL || QC_pass == NULL){
+    printf("Error opening file(s)\n");
+    return 0;
+  }
+  
+  char QC_pend_code1[10];
+  char QC_pass_code[10];
+  char GRN[10];
+  char part_no[10];
+  char part_name[50];
+  char supplier_name[20];
+  int price_per_unit;
+  int quantity;
+  int found=0;
+
+  while(fgets(line,sizeof(line),QC_pend)){
+    sscanf(line,"%[^,],%[^,],%[^,],%[^,],%[^,],%d,%d",QC_pend_code1,GRN,part_no,part_name,supplier_name,&price_per_unit,&quantity);
+
+    if(strcmp(QC_pend_code1,QC_pend_code)==0){
+      generate_code("QCPass",QC_pass_code,"QC_passed.txt");
+
+      fprintf(QC_pass,"%s,%s,%s,%s,%s,%s,%d,%d\n",QC_pass_code,QC_pend_code1,GRN,part_no,part_name,supplier_name,price_per_unit,quantity);
+      found=1;
+      
+    }else{
+        fprintf(temp,"%s,%s,%s,%s,%s,%d,%d\n",QC_pend_code1,GRN,part_no,part_name,supplier_name,price_per_unit,quantity);
+
+    }
+  }
+
+
+  fclose(temp);
+  fclose(QC_pass);
+  fclose(QC_pend);
+
+  remove("QC_pending.txt");
+  rename("temp.txt","QC_pending.txt");
+  if(!found){
+    printf("%s","Invalid Choice.\n");
+  }else{
+    printf("Record moved to QC_passed successfully.\n");
+  }
+  return found;
+      
+}
+
+int QC_failed(){
+  char QC_pend_code[10];
+  char line[300];
+  printf("Enter the QC pending code of the good that you need to move to QC failed: \n");
+  scanf("%s",QC_pend_code);
+  getchar();
+
+  FILE *QC_pend=fopen("QC_pending.txt","r");
+  FILE *temp=fopen("temp.txt","w");
+  FILE *QC_fail=fopen("QC_failed.txt","a");
+
+  if(QC_pend == NULL || temp == NULL || QC_fail == NULL){
+    printf("Error opening file(s)\n");
+    return 0;
+  }
+  
+  char QC_pend_code1[10];
+  char QC_fail_code[10];
+  char GRN[10];
+  char part_no[10];
+  char part_name[50];
+  char supplier_name[20];
+  int price_per_unit;
+  int quantity;
+  int found=0;
+
+  while(fgets(line,sizeof(line),QC_pend)){
+    sscanf(line,"%[^,],%[^,],%[^,],%[^,],%[^,],%d,%d",QC_pend_code1,GRN,part_no,part_name,supplier_name,&price_per_unit,&quantity);
+
+    if(strcmp(QC_pend_code1,QC_pend_code)==0){
+      generate_code("QCFail",QC_fail_code,"QC_failed.txt");
+
+      fprintf(QC_fail,"%s,%s,%s,%s,%s,%s,%d,%d\n",QC_fail_code,QC_pend_code1,GRN,part_no,part_name,supplier_name,price_per_unit,quantity);
+      found=1;
+      
+    }else{
+        fprintf(temp,"%s,%s,%s,%s,%s,%d,%d\n",QC_pend_code1,GRN,part_no,part_name,supplier_name,price_per_unit,quantity);
+
+    }
+  }
+
+
+  fclose(temp);
+  fclose(QC_fail);
+  fclose(QC_pend);
+
+  remove("QC_pending.txt");
+  rename("temp.txt","QC_pending.txt");
+  if(!found){
+    printf("%s","Invalid Choice.\n");
+  }else{
+    printf("Record moved to QC_failed successfully.\n");
+  }
+  return found;
+      
+}
+
+int QCpend_to_STORE(){
+  char QC_pass_code_user[10];
+  char QC_pass_code[10];
+  char QC_pend_code[10];
+  char GRN[10];
+  char part_no[10];
+  char part_name[50];
+  char supplier_name[20];
+  int price_per_unit;
+  int quantity;
+  char line[300];
+  int found=0;
+  int final_quantity;
+  char final_part_no[10];
+
+  printf("Enter the QC passed code you want to update: \n");
+  scanf("%s",QC_pass_code_user);
+  getchar();
+
+  FILE *QC_pass=fopen("QC_passed.txt","r");
+  
+  FILE *temp_pass=fopen("temporary.txt","w");
+  FILE *QC_approve_record=fopen("QC_passed_approved.txt","a");
+
+  if (!QC_pass || !temp_pass || !QC_approve_record) {
+        printf("Error opening QC files.\n");
+        return 0;
+    }
+
+
+  char store_approve_code[10];
+  while(fgets(line,sizeof(line),QC_pass)){
+    sscanf(line,"%[^,],%[^,],%[^,],%[^,],%[^,],%[^,],%d,%d",QC_pass_code,QC_pend_code,GRN,part_no,part_name,supplier_name,&price_per_unit,&quantity);
+
+    if(strcmp(QC_pass_code_user,QC_pass_code)==0){
+      generate_code("QC_store_approve",store_approve_code,"QC_passed_approved.txt");
+      fprintf(QC_approve_record,"%s,%s,%s,%s,%s,%s,%s,%d,%d\n",store_approve_code,QC_pass_code,QC_pend_code,GRN,part_no,part_name,supplier_name,price_per_unit,quantity);
+      final_quantity=quantity;
+      strcpy(final_part_no,part_no);
+      found=1;
+    }else{
+
+      
+      fprintf(temp_pass,"%s,%s,%s,%s,%s,%s,%d,%d\n",QC_pass_code,QC_pend_code,GRN,part_no,part_name,supplier_name,price_per_unit,quantity);
+      
+    }
+  }
+  fclose(temp_pass);
+  fclose(QC_pass);
+  fclose(QC_approve_record);
+  
+  remove("QC_passed.txt");
+  rename("temporary.txt","QC_passed.txt");
+  
+  if(found){
+    char store_line[300];
+
+    FILE *temp2=fopen("temporary1.txt","w");
+    FILE *store=fopen("store.txt","r");
+    
+    if (!store || !temp2) {
+        printf("Error opening store files.\n");
+        return 0;
+      }
+    int store_sno;
+    char store_part_no[10];
+    char store_part_name[50];
+    char store_part_supplier[20];
+    int store_price_per_unit;
+    int store_quantity;
+
+    while(fgets(store_line,sizeof(store_line),store)){
+      sscanf(store_line,"%d,%[^,],%[^,],%[^,],%d,%d",&store_sno,store_part_no,store_part_name,store_part_supplier,&store_price_per_unit,&store_quantity);
+      
+      if(strcmp(final_part_no,store_part_no)==0){
+        store_quantity=store_quantity+final_quantity;
+        fprintf(temp2,"%d,%s,%s,%s,%d,%d\n",store_sno,store_part_no,store_part_name,store_part_supplier,store_price_per_unit,store_quantity);
+      }else{
+        fprintf(temp2,"%d,%s,%s,%s,%d,%d\n",store_sno,store_part_no,store_part_name,store_part_supplier,store_price_per_unit,store_quantity);
+      }
+    }
+    fclose(store);
+    fclose(temp2);
+    
+
+    remove("store.txt");
+    rename("temporary1.txt","store.txt");
+  }
+
+  if(!found){
+    printf("%s","Invalid Choice.\n");
+  }else{
+    printf("updated store record successfully.\n");
+  }
+  return found;
+}
+
+int PROD(login_info *info){
+  file_viewer("store.txt");
+  int sno;
+  int quantity;
+  int issued=0;
+
+  printf("Enter the Sno. of the good that you want issued: \n");
+  scanf("%d",&sno);
+  getchar();
+
+  printf("Enter the Quantity: \n");
+  scanf("%d",&quantity);
+  getchar();
+
+  FILE *store=fopen("store.txt","r");
+  FILE *temp=fopen("temp.txt","w");
+  
+  int store_sno;
+  char store_part_no[10];
+  char store_part_name[50];
+  char store_part_supplier[20];
+  int store_price_per_unit;
+  int store_quantity;
+  char store_line[300];
+  int new_quantity;
+  char selected_part_no[10];
+  char selected_part_name[50];
+  int selected_issued_quantity = quantity;
+  int found = 0;
+
+  while(fgets(store_line,sizeof(store_line),store)){
+    sscanf(store_line,"%d,%[^,],%[^,],%[^,],%d,%d",&store_sno,store_part_no,store_part_name,store_part_supplier,&store_price_per_unit,&store_quantity);
+
+    if(sno==store_sno){
+      new_quantity=store_quantity-quantity;
+      if (new_quantity>=0){
+        store_quantity=new_quantity;
+        issued=1;
+        strcpy(selected_part_no, store_part_no);
+        strcpy(selected_part_name, store_part_name);
+        found = 1;
+        fprintf(temp,"%d,%s,%s,%s,%d,%d\n",store_sno,store_part_no,store_part_name,store_part_supplier,store_price_per_unit,store_quantity);
+
+      }else{
+        fclose(temp);
+        fclose(store);
+        remove("temp.txt");
+        printf("Stock unavailable");
+        return issued;
+        
+      }
+    }else{
+      fprintf(temp,"%d,%s,%s,%s,%d,%d\n",store_sno,store_part_no,store_part_name,store_part_supplier,store_price_per_unit,store_quantity);
+    }
+
+  }
+  fclose(store);
+  fclose(temp);
+  remove("store.txt");
+  rename("temp.txt","store.txt");
+  if (found){
+    char issue_code[20];
+    FILE *f=fopen("production_issue.txt","a");
+    generate_code("PDI",issue_code,"production_issue.txt");
+    fprintf(f,"%s,%s,%s,%d,%s\n",issue_code,selected_part_no,selected_part_name,quantity,info->username);
+
+  fclose(f);
+  }
+  return issued;
+}
+
 
 
           }
