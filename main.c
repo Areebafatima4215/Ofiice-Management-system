@@ -10,6 +10,7 @@ typedef struct{
   char role[10];
   int success;
 }login_info;
+  
 //menu when the app starts
 int start_menu();
 
